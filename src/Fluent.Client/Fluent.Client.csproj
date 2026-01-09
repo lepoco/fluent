@@ -23,6 +23,7 @@
   <ItemGroup>
     <PackageReference
       Include="System.Text.Json"
+      VersionOverride="6.0.11"
       Condition="'$(TargetFramework)' == 'net472' OR '$(TargetFramework)' == 'net481'"
     />
   </ItemGroup>
