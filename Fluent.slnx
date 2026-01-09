@@ -1,0 +1,15 @@
+<Solution>
+  <Folder Name="/Solution Items/">
+    <File Path="Directory.Build.props" />
+    <File Path="Directory.Build.targets" />
+    <File Path="Directory.Packages.props" />
+    <File Path="LICENSE" />
+    <File Path="README.md" />
+  </Folder>
+  <Folder Name="/Tests/">
+    <Project Path="tests/Fluent.Client.AwesomeAssertions.UnitTests/Fluent.Client.AwesomeAssertions.UnitTests.csproj" />
+    <Project Path="tests/Fluent.Client.UnitTests/Fluent.Client.UnitTests.csproj" />
+  </Folder>
+  <Project Path="src/Fluent.Client.AwesomeAssertions/Fluent.Client.AwesomeAssertions.csproj" />
+  <Project Path="src/Fluent.Client/Fluent.Client.csproj" />
+</Solution>

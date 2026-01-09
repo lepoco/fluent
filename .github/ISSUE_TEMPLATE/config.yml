@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Documentation
+    url: https://fluent.lepo.co/documentation/
+    about: Find out how Fluent Framework works.
+  - name: Tutorial
+    url: https://fluent.lepo.co/documentation/tutorial
+    about: Having trouble with the basics? Check out the tutorial!
+  - name: lepo.co contact
+    url: https://lepo.co/contact
+    about: Do you want to establish business contact? Let us know.
