@@ -10,6 +10,12 @@ namespace Fluent.Client;
 /// <summary>
 /// Represents the contents and configuration for a fluent HTTP request.
 /// This class is used to build and customize the HTTP request before sending it.
+/// <para>
+/// When writing tests, you can inspect instances of this class to verify that the correct
+/// headers, body, parameters, and other settings were configured before the request is sent.
+/// This allows for detailed assertions on the request state without needing to mock the internal
+/// logic of the HTTP client.
+/// </para>
 /// </summary>
 public class FluentHttpRequestContents
 {

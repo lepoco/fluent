@@ -11,14 +11,8 @@ using AwesomeAssertions.Primitives;
 
 namespace Fluent.Client.AwesomeAssertions;
 
-public class HttpResponseMessageTaskAssertions(
-    Task<HttpResponseMessage> instance,
-    AssertionChain chain
-)
-    : ReferenceTypeAssertions<Task<HttpResponseMessage>, HttpResponseMessageTaskAssertions>(
-        instance,
-        chain
-    )
+public class HttpResponseMessageTaskAssertions(Task<HttpResponseMessage> instance, AssertionChain chain)
+    : ReferenceTypeAssertions<Task<HttpResponseMessage>, HttpResponseMessageTaskAssertions>(instance, chain)
 {
     private AssertionChain chain = chain;
 
@@ -41,7 +35,7 @@ public class HttpResponseMessageTaskAssertions(
         params object[] becauseArgs
     )
     {
-        HttpResponseMessage response = await Subject;
+        using HttpResponseMessage response = await Subject;
 
         chain
             .BecauseOf(because, becauseArgs)
@@ -60,7 +54,7 @@ public class HttpResponseMessageTaskAssertions(
         params object[] becauseArgs
     )
     {
-        HttpResponseMessage response = await Subject;
+        using HttpResponseMessage response = await Subject;
 
         chain
             .BecauseOf(because, becauseArgs)
@@ -74,12 +68,9 @@ public class HttpResponseMessageTaskAssertions(
     /// <summary>
     /// Asserts that the HTTP response indicates a failure (non-success status code).
     /// </summary>
-    public async Task Fail(
-        [StringSyntax("CompositeFormat")] string because = "",
-        params object[] becauseArgs
-    )
+    public async Task Fail([StringSyntax("CompositeFormat")] string because = "", params object[] becauseArgs)
     {
-        HttpResponseMessage response = await Subject;
+        using HttpResponseMessage response = await Subject;
 
         chain
             .BecauseOf(because, becauseArgs)
@@ -98,7 +89,7 @@ public class HttpResponseMessageTaskAssertions(
         params object[] becauseArgs
     )
     {
-        HttpResponseMessage response = await Subject;
+        using HttpResponseMessage response = await Subject;
 
         chain
             .BecauseOf(because, becauseArgs)
@@ -120,14 +111,16 @@ public class HttpResponseMessageTaskAssertions(
             throw new ArgumentNullException(nameof(assertion));
         }
 
-        HttpResponseMessage response = await Subject;
+        using HttpResponseMessage response = await Subject;
         string? rawResponse = await response.Content.ReadAsStringAsync();
 
         // TODO: When 400 can deserialize problem response
         chain
             .BecauseOf(because, becauseArgs)
             .ForCondition(!string.IsNullOrWhiteSpace(rawResponse))
-            .FailWith("Expected HTTP response body to be deserializable, but it was null.");
+            .FailWith(
+                $"Expected HTTP response body to be deserializable to {typeof(TBody)}, but it was null."
+            );
 
         if (CurrentAssertionChain.Succeeded)
         {

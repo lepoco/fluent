@@ -1,162 +1,158 @@
-﻿﻿// This Source Code Form is subject to the terms of the MIT License.
+﻿// This Source Code Form is subject to the terms of the MIT License.
 // If a copy of the MIT was not distributed with this file, You can obtain one at https://opensource.org/licenses/MIT.
 // Copyright (C) Leszek Pomianowski and Fluent Framework Contributors.
 // All Rights Reserved.
 
-using HttpMethod = System.Net.Http.HttpMethod;
+using System.Net.Http;
 using HttpResponseMessage = System.Net.Http.HttpResponseMessage;
 
 namespace Fluent.Client;
 
 public static class HttpClientExtensions
 {
-    extension(System.Net.Http.HttpClient client)
+    extension(HttpClient client)
     {
         /// <summary>
-        /// Creates a <see cref="FluentHttpRequest"/> for the given <see cref="HttpClient"/> and attaches the given body to the request.
+        /// Starts defining a fluent HTTP request with the provided body content.
         /// </summary>
+        /// <param name="body">The request body.</param>
         public FluentHttpRequest With<TRequest>(TRequest body)
             where TRequest : class => new(client, new FluentHttpRequestContents { Body = body });
 
         /// <summary>
-        /// Initializes a new <see cref="FluentHttpRequest"/> with an Authorization header.
+        /// Starts defining a fluent HTTP request with the specified authorization credentials.
         /// </summary>
-        public FluentHttpRequest Authorize(string token, string kind = "Bearer") =>
-            new FluentHttpRequest(client, new FluentHttpRequestContents()).Authorize(token, kind);
+        /// <param name="username">The username.</param>
+        /// <param name="password">The password.</param>
+        /// <param name="token">The access token.</param>
+        /// <param name="kind">The token kind. Defaults to "Bearer".</param>
+        public FluentHttpRequest Authorize(
+            string? username = null,
+            string? password = null,
+            string? token = null,
+            AuthorizationType? kind = null
+        ) => new FluentHttpRequest(client).Authorize(username, password, token, kind);
 
         /// <summary>
-        /// Sends a POST request.
+        /// Sends an HTTP POST request asynchronously.
         /// </summary>
+        /// <param name="path">The request path.</param>
+        /// <param name="body">The request body.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
         public Task<HttpResponseMessage> Post(
             string path = "",
             object? body = null,
             CancellationToken cancellationToken = default
-        )
-        {
-            FluentHttpRequest request = new(
-                client,
-                new FluentHttpRequestContents
-                {
-                    HttpMethod = HttpMethod.Post,
-                    Path = path,
-                    Body = body,
-                }
-            );
-
-            return request.SendAsync(cancellationToken);
-        }
+        ) => new FluentHttpRequest(client).Post(path, body, cancellationToken);
 
         /// <summary>
-        /// Sends a POST request.
+        /// Sends an HTTP POST request asynchronously and deserializes the JSON response.
         /// </summary>
+        /// <param name="path">The request path.</param>
+        /// <param name="body">The request body.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
         public Task<TResponse> Post<TResponse>(
             string path = "",
             object? body = null,
             CancellationToken cancellationToken = default
         )
-            where TResponse : class
-        {
-            FluentHttpRequest request = new(
-                client,
-                new FluentHttpRequestContents
-                {
-                    HttpMethod = HttpMethod.Post,
-                    Path = path,
-                    Body = body,
-                }
-            );
-
-            return request.Send<TResponse>(cancellationToken: cancellationToken);
-        }
+            where TResponse : class =>
+            new FluentHttpRequest(client).Post<TResponse>(path, body, cancellationToken);
 
         /// <summary>
-        /// Sends a PUT request.
+        /// Sends an HTTP PUT request asynchronously.
         /// </summary>
+        /// <param name="path">The request path.</param>
+        /// <param name="body">The request body.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
         public Task<HttpResponseMessage> Put(
             string path = "",
             object? body = null,
             CancellationToken cancellationToken = default
-        )
-        {
-            FluentHttpRequest request = new(
-                client,
-                new FluentHttpRequestContents
-                {
-                    HttpMethod = HttpMethod.Put,
-                    Path = path,
-                    Body = body,
-                }
-            );
-
-            return request.SendAsync(cancellationToken);
-        }
+        ) => new FluentHttpRequest(client).Put(path, body, cancellationToken);
 
         /// <summary>
-        /// Sends a PUT request.
+        /// Sends an HTTP PUT request asynchronously and deserializes the JSON response.
         /// </summary>
+        /// <param name="path">The request path.</param>
+        /// <param name="body">The request body.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
         public Task<TResponse> Put<TResponse>(
             string path = "",
             object? body = null,
             CancellationToken cancellationToken = default
         )
-            where TResponse : class
-        {
-            FluentHttpRequest request = new(
-                client,
-                new FluentHttpRequestContents
-                {
-                    HttpMethod = HttpMethod.Put,
-                    Path = path,
-                    Body = body,
-                }
-            );
-
-            return request.Send<TResponse>(cancellationToken: cancellationToken);
-        }
+            where TResponse : class =>
+            new FluentHttpRequest(client).Put<TResponse>(path, body, cancellationToken);
 
         /// <summary>
-        /// Sends a DELETE request.
+        /// Sends an HTTP PATCH request asynchronously.
         /// </summary>
-        public Task<HttpResponseMessage> Delete(
+        /// <param name="path">The request path.</param>
+        /// <param name="body">The request body.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        public Task<HttpResponseMessage> Patch(
+            string path = "",
+            object? body = null,
+            CancellationToken cancellationToken = default
+        ) => new FluentHttpRequest(client).Patch(path, body, cancellationToken);
+
+        /// <summary>
+        /// Sends an HTTP PATCH request asynchronously and deserializes the JSON response.
+        /// </summary>
+        /// <param name="path">The request path.</param>
+        /// <param name="body">The request body.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        public Task<TResponse> Patch<TResponse>(
             string path = "",
             object? body = null,
             CancellationToken cancellationToken = default
         )
-        {
-            FluentHttpRequest request = new(
-                client,
-                new FluentHttpRequestContents
-                {
-                    HttpMethod = HttpMethod.Delete,
-                    Path = path,
-                    Body = body,
-                }
-            );
-
-            return request.SendAsync(cancellationToken);
-        }
+            where TResponse : class =>
+            new FluentHttpRequest(client).Patch<TResponse>(path, body, cancellationToken);
 
         /// <summary>
-        /// Sends a DELETE request.
+        /// Sends an HTTP DELETE request asynchronously.
         /// </summary>
+        /// <param name="path">The request path.</param>
+        /// <param name="body">The request body.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        public Task<HttpResponseMessage> Delete(
+            string path = "",
+            object? body = null,
+            CancellationToken cancellationToken = default
+        ) => new FluentHttpRequest(client).Delete(path, body, cancellationToken);
+
+        /// <summary>
+        /// Sends an HTTP DELETE request asynchronously and deserializes the JSON response.
+        /// </summary>
+        /// <param name="path">The request path.</param>
+        /// <param name="body">The request body.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
         public Task<TResponse> Delete<TResponse>(
             string path = "",
             object? body = null,
             CancellationToken cancellationToken = default
         )
-            where TResponse : class
-        {
-            FluentHttpRequest request = new(
-                client,
-                new FluentHttpRequestContents
-                {
-                    HttpMethod = HttpMethod.Delete,
-                    Path = path,
-                    Body = body,
-                }
-            );
+            where TResponse : class =>
+            new FluentHttpRequest(client).Delete<TResponse>(path, body, cancellationToken);
 
-            return request.Send<TResponse>(cancellationToken: cancellationToken);
-        }
+        /// <summary>
+        /// Sends an HTTP GET request asynchronously.
+        /// </summary>
+        /// <param name="path">The request path.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        public Task<HttpResponseMessage> Get(
+            string path = "",
+            CancellationToken cancellationToken = default
+        ) => new FluentHttpRequest(client).Get(path, cancellationToken);
+
+        /// <summary>
+        /// Sends an HTTP GET request asynchronously and deserializes the JSON response.
+        /// </summary>
+        /// <param name="path">The request path.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        public Task<TResponse> Get<TResponse>(string path = "", CancellationToken cancellationToken = default)
+            where TResponse : class => new FluentHttpRequest(client).Get<TResponse>(path, cancellationToken);
     }
 }

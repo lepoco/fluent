@@ -15,8 +15,11 @@ namespace Fluent.Client;
 /// </summary>
 /// <param name="client"><see cref="System.Net.Http.HttpClient"/> to use for sending the request.</param>
 /// <param name="contents">Contents of the HTTP request.</param>
-public sealed class FluentHttpRequest(System.Net.Http.HttpClient client, FluentHttpRequestContents contents)
+public sealed class FluentHttpRequest(HttpClient client, FluentHttpRequestContents? contents = null)
 {
+    /// <summary>
+    /// Default JSON options for serialization.
+    /// </summary>
     public static JsonSerializerOptions DefaultJsonOptions = new()
     {
         PropertyNameCaseInsensitive = true,
@@ -29,60 +32,73 @@ public sealed class FluentHttpRequest(System.Net.Http.HttpClient client, FluentH
     /// <summary>
     /// Gets the contents of the Fluent HTTP request.
     /// </summary>
-    public FluentHttpRequestContents Contents => contents;
+    public FluentHttpRequestContents Contents
+    {
+        get
+        {
+            if (field is not null)
+            {
+                return field;
+            }
+
+            field = contents ?? new FluentHttpRequestContents();
+
+            return field;
+        }
+    }
 
     /// <summary>
     /// Sends the HTTP request asynchronously.
     /// </summary>
-    /// <param name="cancellationToken"></param>
-    /// <returns></returns>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>The HTTP response message.</returns>
     public Task<HttpResponseMessage> SendAsync(CancellationToken cancellationToken = default)
     {
         object[] encodedParameters =
-            contents
+            Contents
                 .QueryParameters?.Select(p => (object)Uri.EscapeDataString(p.ToString() ?? string.Empty))
                 .ToArray()
             ?? [];
 
         HttpRequestMessage request = new()
         {
-            Method = contents.HttpMethod ?? HttpMethod.Get,
+            Method = Contents.HttpMethod ?? HttpMethod.Get,
             RequestUri = new Uri(
-                string.Format(contents.Path ?? "/", encodedParameters),
+                string.Format(Contents.Path ?? "", encodedParameters),
                 UriKind.RelativeOrAbsolute
             ),
         };
 
-        request.Headers.TryAddWithoutValidation("User-Agent", contents.UserAgent);
-        request.Headers.TryAddWithoutValidation("Accept", contents.AcceptedContentType);
-        request.Headers.TryAddWithoutValidation("Accept-Language", contents.Culture);
-        request.Headers.TryAddWithoutValidation("Lang", contents.Culture);
+        request.Headers.TryAddWithoutValidation("User-Agent", Contents.UserAgent);
+        request.Headers.TryAddWithoutValidation("Accept", Contents.AcceptedContentType);
+        request.Headers.TryAddWithoutValidation("Accept-Language", Contents.Culture);
+        request.Headers.TryAddWithoutValidation("Lang", Contents.Culture);
 
-        foreach (KeyValuePair<string, string> header in contents.Headers ?? [])
+        foreach (KeyValuePair<string, string> header in Contents.Headers ?? [])
         {
             request.Headers.TryAddWithoutValidation(header.Key, header.Value);
         }
 
-        if (contents.Body is not null)
+        if (Contents.Body is not null)
         {
-            string jsonContent = JsonSerializer.Serialize(contents.Body, DefaultJsonOptions);
+            string jsonContent = JsonSerializer.Serialize(Contents.Body, DefaultJsonOptions);
 
 #if NETFRAMEWORK
-            HttpContent httpContent = new StringContent(jsonContent, Encoding.UTF8, contents.ContentType);
+            HttpContent httpContent = new StringContent(jsonContent, Encoding.UTF8, Contents.ContentType);
 #else
             HttpContent httpContent = new StringContent(
                 jsonContent,
                 Encoding.UTF8,
-                new System.Net.Http.Headers.MediaTypeHeaderValue(contents.ContentType)
+                new System.Net.Http.Headers.MediaTypeHeaderValue(Contents.ContentType)
             );
 #endif
 
             request.Content = httpContent;
         }
 
-        if (contents.Timeout.HasValue)
+        if (Contents.Timeout.HasValue)
         {
-            using CancellationTokenSource cts = new(contents.Timeout.Value);
+            using CancellationTokenSource cts = new(Contents.Timeout.Value);
             using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(
                 cancellationToken,
                 cts.Token
