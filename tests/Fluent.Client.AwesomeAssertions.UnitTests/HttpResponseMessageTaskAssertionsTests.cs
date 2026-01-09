@@ -13,6 +13,31 @@ namespace Fluent.Client.AwesomeAssertions.UnitTests;
 public sealed class HttpResponseMessageTaskAssertionsTests
 {
     [Fact]
+    public async Task HaveStatusCode_ShouldCatchSuccess_WhenGivenRequestWithQuery()
+    {
+        using System.Net.Http.HttpClient client = new(
+            new FakeHttpMessageHandler(new HttpResponseMessage(HttpStatusCode.Unauthorized))
+        )
+        {
+            BaseAddress = new Uri("https://lepo.co"),
+        };
+
+        await client
+            .Authorize(username: "john", password: "potato")
+            .Get(
+                "/v1/api/basket",
+                new
+                {
+                    page = 1,
+                    limit = 2,
+                    sortBy = "dateAsc",
+                }
+            )
+            .Should()
+            .HaveStatusCode(HttpStatusCode.Unauthorized, "because the server returned 200 OK");
+    }
+
+    [Fact]
     public async Task Succeed_ShouldCatchSuccess_WhenServerReturnsOk()
     {
         using System.Net.Http.HttpClient client = new(

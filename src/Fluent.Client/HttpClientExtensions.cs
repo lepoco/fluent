@@ -34,6 +34,17 @@ public static class HttpClientExtensions
         ) => new FluentHttpRequest(client).Authorize(username, password, token, kind);
 
         /// <summary>
+        /// Sets the query parameters of the HTTP request from the properties of the provided object.
+        /// </summary>
+        public FluentHttpRequest Query(object query) => new FluentHttpRequest(client).Query(query);
+
+        /// <summary>
+        /// Adds a single query parameter to the HTTP request.
+        /// </summary>
+        public FluentHttpRequest WithParameter(string key, object? value) =>
+            new FluentHttpRequest(client).WithParameter(key, value);
+
+        /// <summary>
         /// Sends an HTTP POST request asynchronously.
         /// </summary>
         /// <param name="path">The request path.</param>
@@ -141,18 +152,26 @@ public static class HttpClientExtensions
         /// Sends an HTTP GET request asynchronously.
         /// </summary>
         /// <param name="path">The request path.</param>
+        /// <param name="query">The request query.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         public Task<HttpResponseMessage> Get(
             string path = "",
+            object? query = null,
             CancellationToken cancellationToken = default
-        ) => new FluentHttpRequest(client).Get(path, cancellationToken);
+        ) => new FluentHttpRequest(client).Get(path, query, cancellationToken);
 
         /// <summary>
         /// Sends an HTTP GET request asynchronously and deserializes the JSON response.
         /// </summary>
         /// <param name="path">The request path.</param>
+        /// <param name="query">The request query.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
-        public Task<TResponse> Get<TResponse>(string path = "", CancellationToken cancellationToken = default)
-            where TResponse : class => new FluentHttpRequest(client).Get<TResponse>(path, cancellationToken);
+        public Task<TResponse> Get<TResponse>(
+            string path = "",
+            object? query = null,
+            CancellationToken cancellationToken = default
+        )
+            where TResponse : class =>
+            new FluentHttpRequest(client).Get<TResponse>(path, query, cancellationToken);
     }
 }

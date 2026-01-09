@@ -42,7 +42,7 @@ public class FluentHttpRequestContents
     /// <summary>
     /// Gets or sets query string parameters to be appended to the request URL.
     /// </summary>
-    public Dictionary<string, object>? QueryParameters { get; set; }
+    public ICollection<KeyValuePair<string, string?>>? QueryParameters { get; set; }
 
     /// <summary>
     /// Gets or sets the culture for the request, typically used for the <c>"Accept-Language"</c> header.

@@ -49,6 +49,42 @@ public static class FluentHttpRequestExtensions
         }
 
         /// <summary>
+        /// Sets the body of the HTTP request.
+        /// </summary>
+        public FluentHttpRequest With(object body)
+        {
+            request.Contents.Body = body;
+
+            return request;
+        }
+
+        /// <summary>
+        /// Sets the query parameters of the HTTP request from the properties of the provided object.
+        /// </summary>
+        public FluentHttpRequest Query(object query)
+        {
+            request.Contents.QueryParameters = query
+                .GetType()
+                .GetProperties()
+                .Where(prop => prop.GetValue(query) is not null)
+                .Select(x => new KeyValuePair<string, string?>(x.Name, x.GetValue(query)?.ToString()))
+                .ToList();
+
+            return request;
+        }
+
+        /// <summary>
+        /// Adds a single query parameter to the HTTP request.
+        /// </summary>
+        public FluentHttpRequest WithParameter(string key, object? value)
+        {
+            request.Contents.QueryParameters ??= new List<KeyValuePair<string, string?>>();
+            request.Contents.QueryParameters.Add(new KeyValuePair<string, string?>(key, value?.ToString()));
+
+            return request;
+        }
+
+        /// <summary>
         /// Sends the HTTP request asynchronously.
         /// </summary>
         /// <param name="cancellationToken">The cancellation token.</param>
@@ -277,11 +313,21 @@ public static class FluentHttpRequestExtensions
         /// Sends a GET request.
         /// </summary>
         /// <param name="path">The request path.</param>
+        /// <param name="query">The request query.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
-        public Task<HttpResponseMessage> Get(string path = "", CancellationToken cancellationToken = default)
+        public Task<HttpResponseMessage> Get(
+            string path = "",
+            object? query = null,
+            CancellationToken cancellationToken = default
+        )
         {
             request.Contents.Path = path;
             request.Contents.HttpMethod = HttpMethod.Get;
+
+            if (query is not null)
+            {
+                request.Query(query);
+            }
 
             return request.Send(cancellationToken: cancellationToken);
         }
@@ -290,12 +336,22 @@ public static class FluentHttpRequestExtensions
         /// Sends a GET request.
         /// </summary>
         /// <param name="path">The request path.</param>
+        /// <param name="query">The request query.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
-        public Task<TResponse> Get<TResponse>(string path = "", CancellationToken cancellationToken = default)
+        public Task<TResponse> Get<TResponse>(
+            string path = "",
+            object? query = null,
+            CancellationToken cancellationToken = default
+        )
             where TResponse : class
         {
             request.Contents.Path = path;
             request.Contents.HttpMethod = HttpMethod.Get;
+
+            if (query is not null)
+            {
+                request.Query(query);
+            }
 
             return request.Send<TResponse>(cancellationToken: cancellationToken);
         }

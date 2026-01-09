@@ -30,6 +30,30 @@ public sealed class FluentHttpRequest(HttpClient client, FluentHttpRequestConten
     };
 
     /// <summary>
+    /// Gets the encoded parameters for the request URI.
+    /// </summary>
+    public Uri Uri
+    {
+        get
+        {
+            string query = Contents.Path ?? "";
+
+            if (Contents.QueryParameters is not null && Contents.QueryParameters.Count > 0)
+            {
+                query +=
+                    $"?{string.Join(
+                    "&",
+                    Contents.QueryParameters.Select(p =>
+                        $"{Uri.EscapeDataString(p.Key)}={(p.Value is null ? "" : Uri.EscapeDataString(p.Value))}"
+                    )
+                )}";
+            }
+
+            return new Uri(query, UriKind.RelativeOrAbsolute);
+        }
+    }
+
+    /// <summary>
     /// Gets the contents of the Fluent HTTP request.
     /// </summary>
     public FluentHttpRequestContents Contents
@@ -54,19 +78,10 @@ public sealed class FluentHttpRequest(HttpClient client, FluentHttpRequestConten
     /// <returns>The HTTP response message.</returns>
     public Task<HttpResponseMessage> SendAsync(CancellationToken cancellationToken = default)
     {
-        object[] encodedParameters =
-            Contents
-                .QueryParameters?.Select(p => (object)Uri.EscapeDataString(p.ToString() ?? string.Empty))
-                .ToArray()
-            ?? [];
-
         HttpRequestMessage request = new()
         {
             Method = Contents.HttpMethod ?? HttpMethod.Get,
-            RequestUri = new Uri(
-                string.Format(Contents.Path ?? "", encodedParameters),
-                UriKind.RelativeOrAbsolute
-            ),
+            RequestUri = Uri,
         };
 
         request.Headers.TryAddWithoutValidation("User-Agent", Contents.UserAgent);
