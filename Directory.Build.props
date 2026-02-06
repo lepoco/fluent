@@ -1,11 +1,6 @@
 <Project>
   <PropertyGroup>
-    <RepositoryDirectory>$(MSBuildThisFileDirectory)</RepositoryDirectory>
-    <BuildToolsDirectory>$(RepositoryDirectory)build\</BuildToolsDirectory>
-  </PropertyGroup>
-
-  <PropertyGroup>
-    <Version>1.0.1</Version>
+    <Version>1.0.2</Version>
     <AssemblyVersion>1.0.0</AssemblyVersion>
   </PropertyGroup>
 
@@ -39,6 +34,11 @@
         since in order to use these APIs the caller already has to be in an unsafe context.
       -->
     <NoWarn>$(NoWarn);CS8500</NoWarn>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <RepositoryDirectory>$(MSBuildThisFileDirectory)</RepositoryDirectory>
+    <BuildToolsDirectory>$(RepositoryDirectory)build\</BuildToolsDirectory>
   </PropertyGroup>
 
   <PropertyGroup>
