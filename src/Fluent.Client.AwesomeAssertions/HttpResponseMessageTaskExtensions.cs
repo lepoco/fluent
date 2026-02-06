@@ -12,7 +12,7 @@ public static class HttpResponseMessageTaskExtensions
     extension(Task<System.Net.Http.HttpResponseMessage> response)
     {
         /// <summary>
-        /// Returns assertions for <see cref="HttpResponseMessage"/>.
+        /// Returns assertions for <see cref="global::System.Net.Http.HttpResponseMessage"/>.
         /// </summary>
         public HttpResponseMessageTaskAssertions Should() => new(response, AssertionChain.GetOrCreate());
     }

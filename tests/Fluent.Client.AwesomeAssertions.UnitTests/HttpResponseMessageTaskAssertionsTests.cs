@@ -1,4 +1,4 @@
-﻿// This Source Code Form is subject to the terms of the MIT License.
+// This Source Code Form is subject to the terms of the MIT License.
 // If a copy of the MIT was not distributed with this file, You can obtain one at https://opensource.org/licenses/MIT.
 // Copyright (C) Leszek Pomianowski and Fluent Framework Contributors.
 // All Rights Reserved.
@@ -7,6 +7,7 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Text.Json;
 using Fluent.Client.AwesomeAssertions.UnitTests.Stubs;
+using Xunit.Sdk;
 
 namespace Fluent.Client.AwesomeAssertions.UnitTests;
 
@@ -15,7 +16,7 @@ public sealed class HttpResponseMessageTaskAssertionsTests
     [Fact]
     public async Task HaveStatusCode_ShouldCatchSuccess_WhenGivenRequestWithQuery()
     {
-        using System.Net.Http.HttpClient client = new(
+        using HttpClient client = new(
             new FakeHttpMessageHandler(new HttpResponseMessage(HttpStatusCode.Unauthorized))
         )
         {
@@ -40,9 +41,7 @@ public sealed class HttpResponseMessageTaskAssertionsTests
     [Fact]
     public async Task Succeed_ShouldCatchSuccess_WhenServerReturnsOk()
     {
-        using System.Net.Http.HttpClient client = new(
-            new FakeHttpMessageHandler(new HttpResponseMessage(HttpStatusCode.OK))
-        )
+        using HttpClient client = new(new FakeHttpMessageHandler(new HttpResponseMessage(HttpStatusCode.OK)))
         {
             BaseAddress = new Uri("https://lepo.co"),
         };
@@ -53,7 +52,7 @@ public sealed class HttpResponseMessageTaskAssertionsTests
     [Fact]
     public async Task Satisfy_ShouldVerifyResponseBody_WhenServerReturnsExpectedJson()
     {
-        using System.Net.Http.HttpClient client = new(
+        using HttpClient client = new(
             new FakeHttpMessageHandler(
                 new HttpResponseMessage(HttpStatusCode.OK)
                 {
@@ -85,7 +84,7 @@ public sealed class HttpResponseMessageTaskAssertionsTests
     [Fact]
     public async Task Fail_ShouldCatchFailure_WhenServerReturnsBadRequest()
     {
-        using System.Net.Http.HttpClient client = new(
+        using HttpClient client = new(
             new FakeHttpMessageHandler(
                 new HttpResponseMessage(HttpStatusCode.BadRequest) { ReasonPhrase = "Bad Request" }
             )
@@ -103,7 +102,7 @@ public sealed class HttpResponseMessageTaskAssertionsTests
     [Fact]
     public async Task HaveStatusCode_ShouldVerifyStatusCode_WhenServerReturnsUnauthorized()
     {
-        using System.Net.Http.HttpClient client = new(
+        using HttpClient client = new(
             new FakeHttpMessageHandler(
                 new HttpResponseMessage(HttpStatusCode.Forbidden) { ReasonPhrase = "Unathorized" }
             )
@@ -118,6 +117,40 @@ public sealed class HttpResponseMessageTaskAssertionsTests
             .HaveStatusCode(HttpStatusCode.Forbidden, "because the server returned 403 Forbidden");
     }
 
+    [Fact]
+    public async Task Satisfy_ShouldThrowJsonException_WhenServerReturnsInvalidJson()
+    {
+        using HttpClient client = new(
+            new FakeHttpMessageHandler(
+                new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = new StringContent(
+                        "{invalid json content}",
+                        new MediaTypeHeaderValue("application/json")
+                    ),
+                }
+            )
+        )
+        {
+            BaseAddress = new Uri("https://lepo.co"),
+        };
+
+        Func<Task> action = async () =>
+            await client
+                .Get("/v1/api/basket")
+                .Should()
+                .Satisfy<TestResponse>(
+                    s =>
+                    {
+                        s.Id.Should().Be(42, "because the Id should be 42");
+                        s.Name.Should().Be("The Answer", "because the Name should be 'The Answer'");
+                    },
+                    "because the server returned invalid JSON body"
+                );
+
+        await action.Should().ThrowAsync<XunitException>();
+    }
+
     //
     // [Fact]
     // public async Task SendAsync_ShouldSatisfyAssertion_WhenBodyIsExpected()
@@ -128,7 +161,7 @@ public sealed class HttpResponseMessageTaskAssertionsTests
     //         new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent(responseContent) }
     //     );
     //
-    //     using var client = new System.Net.Http.HttpClient(handler)
+    //     using var client = new HttpClient(handler)
     //     {
     //         BaseAddress = new Uri("https://lepo.co"),
     //     };
@@ -160,7 +193,7 @@ public sealed class HttpResponseMessageTaskAssertionsTests
     //         }
     //     );
     //
-    //     using var client = new System.Net.Http.HttpClient(handler)
+    //     using var client = new HttpClient(handler)
     //     {
     //         BaseAddress = new Uri("https://lepo.co"),
     //     };

@@ -14,10 +14,12 @@ namespace Fluent.Client.AwesomeAssertions;
 public class HttpResponseMessageTaskAssertions(Task<HttpResponseMessage> instance, AssertionChain chain)
     : ReferenceTypeAssertions<Task<HttpResponseMessage>, HttpResponseMessageTaskAssertions>(instance, chain)
 {
-    private AssertionChain chain = chain;
+    private readonly AssertionChain chain = chain;
 
     protected override string Identifier => "http-response";
 
+    // ReSharper disable once MemberCanBePrivate.Global
+    // ReSharper disable once FieldCanBeMadeReadOnly.Global
     public static JsonSerializerOptions DefaultJsonOptions = new()
     {
         PropertyNameCaseInsensitive = true,
@@ -128,7 +130,23 @@ public class HttpResponseMessageTaskAssertions(Task<HttpResponseMessage> instanc
 
             using (AssertionScope assertionScope = new())
             {
-                TBody? body = JsonSerializer.Deserialize<TBody>(rawResponse, DefaultJsonOptions);
+                TBody? body;
+
+                try
+                {
+                    body = JsonSerializer.Deserialize<TBody>(rawResponse, DefaultJsonOptions);
+                }
+                catch (Exception e)
+                {
+                    CurrentAssertionChain
+                        .WithDefaultIdentifier(Identifier)
+                        .WithExpectation(
+                            $"Expected HTTP response content to be deserializable to \"{typeof(TBody).Name}\", but deserialization threw an exception:",
+                            assertionChain => assertionChain.FailWith(e.ToString())
+                        );
+
+                    return;
+                }
 
                 assertion(body!);
                 failuresFromInspector = assertionScope.Discard();
