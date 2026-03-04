@@ -132,4 +132,151 @@ public class FluentHttpRequestTests
                 "because the query parameters should correctly handle duplicates in the URI"
             );
     }
+
+    [Fact]
+    public void WithHeader_ShouldSetCustomHeader_WhenCalled()
+    {
+        using HttpClient client = new(new FakeHttpMessageHandler(new HttpResponseMessage(HttpStatusCode.OK)))
+        {
+            BaseAddress = new Uri("https://lepo.co"),
+        };
+
+        FluentHttpRequest request = new(client);
+        request.WithHeader("X-Custom", "test-value");
+
+        request.Contents.Headers.Should().ContainKey("X-Custom");
+        request.Contents.Headers!["X-Custom"].Should().Be("test-value");
+    }
+
+    [Fact]
+    public void WithTimeout_ShouldSetTimeout_WhenCalled()
+    {
+        using HttpClient client = new(new FakeHttpMessageHandler(new HttpResponseMessage(HttpStatusCode.OK)))
+        {
+            BaseAddress = new Uri("https://lepo.co"),
+        };
+
+        FluentHttpRequest request = new(client);
+        request.WithTimeout(TimeSpan.FromSeconds(30));
+
+        request.Contents.Timeout.Should().Be(TimeSpan.FromSeconds(30));
+    }
+
+    [Fact]
+    public void WithContentType_ShouldSetContentType_WhenCalled()
+    {
+        using HttpClient client = new(new FakeHttpMessageHandler(new HttpResponseMessage(HttpStatusCode.OK)))
+        {
+            BaseAddress = new Uri("https://lepo.co"),
+        };
+
+        FluentHttpRequest request = new(client);
+        request.WithContentType("text/xml");
+
+        request.Contents.ContentType.Should().Be("text/xml");
+    }
+
+    [Fact]
+    public void WithCulture_ShouldSetCulture_WhenCalled()
+    {
+        using HttpClient client = new(new FakeHttpMessageHandler(new HttpResponseMessage(HttpStatusCode.OK)))
+        {
+            BaseAddress = new Uri("https://lepo.co"),
+        };
+
+        FluentHttpRequest request = new(client);
+        request.WithCulture("pl-PL");
+
+        request.Contents.Culture.Should().Be("pl-PL");
+    }
+
+    [Fact]
+    public void WithAccept_ShouldSetAcceptedContentType_WhenCalled()
+    {
+        using HttpClient client = new(new FakeHttpMessageHandler(new HttpResponseMessage(HttpStatusCode.OK)))
+        {
+            BaseAddress = new Uri("https://lepo.co"),
+        };
+
+        FluentHttpRequest request = new(client);
+        request.WithAccept("text/html");
+
+        request.Contents.AcceptedContentType.Should().Be("text/html");
+    }
+
+    [Fact]
+    public void WithUserAgent_ShouldSetUserAgent_WhenCalled()
+    {
+        using HttpClient client = new(new FakeHttpMessageHandler(new HttpResponseMessage(HttpStatusCode.OK)))
+        {
+            BaseAddress = new Uri("https://lepo.co"),
+        };
+
+        FluentHttpRequest request = new(client);
+        request.WithUserAgent("TestBot/1.0");
+
+        request.Contents.UserAgent.Should().Be("TestBot/1.0");
+    }
+
+    [Fact]
+    public async Task Head_ShouldSendHeadRequest_WhenCalledViaHttpClient()
+    {
+        HttpMethod? capturedMethod = null;
+        using HttpClient client = new(
+            new FakeHttpMessageHandler(request =>
+            {
+                capturedMethod = request.Method;
+                return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK));
+            })
+        )
+        {
+            BaseAddress = new Uri("https://lepo.co"),
+        };
+
+        using HttpResponseMessage response = await client.Head("/v1/api/health");
+
+        capturedMethod.Should().Be(HttpMethod.Head);
+        response.IsSuccessStatusCode.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task Options_ShouldSendOptionsRequest_WhenCalledViaHttpClient()
+    {
+        HttpMethod? capturedMethod = null;
+        using HttpClient client = new(
+            new FakeHttpMessageHandler(request =>
+            {
+                capturedMethod = request.Method;
+                return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK));
+            })
+        )
+        {
+            BaseAddress = new Uri("https://lepo.co"),
+        };
+
+        using HttpResponseMessage response = await client.Options("/v1/api/cors");
+
+        capturedMethod.Should().Be(HttpMethod.Options);
+        response.IsSuccessStatusCode.Should().BeTrue();
+    }
+
+    [Fact]
+    public void WithHeader_ShouldSupportChaining_WhenMultipleHeadersAdded()
+    {
+        using HttpClient client = new(new FakeHttpMessageHandler(new HttpResponseMessage(HttpStatusCode.OK)))
+        {
+            BaseAddress = new Uri("https://lepo.co"),
+        };
+
+        FluentHttpRequest request = new FluentHttpRequest(client)
+            .WithHeader("X-First", "one")
+            .WithHeader("X-Second", "two")
+            .WithTimeout(TimeSpan.FromSeconds(10))
+            .WithContentType("text/plain");
+
+        request.Contents.Headers.Should().ContainKey("X-First");
+        request.Contents.Headers.Should().ContainKey("X-Second");
+        request.Contents.Timeout.Should().Be(TimeSpan.FromSeconds(10));
+        request.Contents.ContentType.Should().Be("text/plain");
+    }
 }

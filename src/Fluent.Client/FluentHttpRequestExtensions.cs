@@ -85,6 +85,74 @@ public static class FluentHttpRequestExtensions
         }
 
         /// <summary>
+        /// Adds a custom header to the HTTP request.
+        /// </summary>
+        /// <param name="key">The header name.</param>
+        /// <param name="value">The header value.</param>
+        public FluentHttpRequest WithHeader(string key, string value)
+        {
+            request.Contents.Headers ??= [];
+            request.Contents.Headers[key] = value;
+
+            return request;
+        }
+
+        /// <summary>
+        /// Sets the timeout for the HTTP request.
+        /// </summary>
+        /// <param name="timeout">The timeout duration.</param>
+        public FluentHttpRequest WithTimeout(TimeSpan timeout)
+        {
+            request.Contents.Timeout = timeout;
+
+            return request;
+        }
+
+        /// <summary>
+        /// Sets the <c>"Content-Type"</c> header value for the request body.
+        /// </summary>
+        /// <param name="contentType">The content type.</param>
+        public FluentHttpRequest WithContentType(string contentType)
+        {
+            request.Contents.ContentType = contentType;
+
+            return request;
+        }
+
+        /// <summary>
+        /// Sets the <c>"Accept-Language"</c> header value.
+        /// </summary>
+        /// <param name="culture">The culture/language value.</param>
+        public FluentHttpRequest WithCulture(string culture)
+        {
+            request.Contents.Culture = culture;
+
+            return request;
+        }
+
+        /// <summary>
+        /// Sets the <c>"Accept"</c> header value.
+        /// </summary>
+        /// <param name="accept">The accepted content type.</param>
+        public FluentHttpRequest WithAccept(string accept)
+        {
+            request.Contents.AcceptedContentType = accept;
+
+            return request;
+        }
+
+        /// <summary>
+        /// Sets the <c>"User-Agent"</c> header value.
+        /// </summary>
+        /// <param name="userAgent">The user agent string.</param>
+        public FluentHttpRequest WithUserAgent(string userAgent)
+        {
+            request.Contents.UserAgent = userAgent;
+
+            return request;
+        }
+
+        /// <summary>
         /// Sends the HTTP request asynchronously.
         /// </summary>
         /// <param name="cancellationToken">The cancellation token.</param>

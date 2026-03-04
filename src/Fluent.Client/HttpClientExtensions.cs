@@ -123,6 +123,46 @@ public static class HttpClientExtensions
             new FluentHttpRequest(client).Patch<TResponse>(path, body, cancellationToken);
 
         /// <summary>
+        /// Sends an HTTP HEAD request asynchronously.
+        /// </summary>
+        public Task<HttpResponseMessage> Head(
+            string path = "",
+            object? body = null,
+            CancellationToken cancellationToken = default
+        ) => new FluentHttpRequest(client).Head(path, body, cancellationToken);
+
+        /// <summary>
+        /// Sends an HTTP HEAD request asynchronously and deserializes the JSON response.
+        /// </summary>
+        public Task<TResponse> Head<TResponse>(
+            string path = "",
+            object? body = null,
+            CancellationToken cancellationToken = default
+        )
+            where TResponse : class =>
+            new FluentHttpRequest(client).Head<TResponse>(path, body, cancellationToken);
+
+        /// <summary>
+        /// Sends an HTTP OPTIONS request asynchronously.
+        /// </summary>
+        public Task<HttpResponseMessage> Options(
+            string path = "",
+            object? body = null,
+            CancellationToken cancellationToken = default
+        ) => new FluentHttpRequest(client).Options(path, body, cancellationToken);
+
+        /// <summary>
+        /// Sends an HTTP OPTIONS request asynchronously and deserializes the JSON response.
+        /// </summary>
+        public Task<TResponse> Options<TResponse>(
+            string path = "",
+            object? body = null,
+            CancellationToken cancellationToken = default
+        )
+            where TResponse : class =>
+            new FluentHttpRequest(client).Options<TResponse>(path, body, cancellationToken);
+
+        /// <summary>
         /// Sends an HTTP DELETE request asynchronously.
         /// </summary>
         /// <param name="path">The request path.</param>
