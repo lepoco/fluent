@@ -11,6 +11,7 @@ using Xunit.Sdk;
 
 namespace Fluent.Client.AwesomeAssertions.UnitTests;
 
+// ReSharper disable AccessToDisposedClosure
 public sealed class HttpResponseMessageTaskAssertionsTests
 {
     [Fact]
@@ -78,6 +79,70 @@ public sealed class HttpResponseMessageTaskAssertionsTests
                     s.Name.Should().Be("The Answer", "because the Name should be 'The Answer'");
                 },
                 "because the server returned the expected JSON body"
+            );
+    }
+
+    [Fact]
+    public async Task Satisfy_ShouldVerifyResponse_WhenServerReturnsOne()
+    {
+        using HttpClient client = new(
+            new FakeHttpMessageHandler(
+                new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = new StringContent(
+                        JsonSerializer.Serialize(new TestResponse { Id = 42, Name = "The Answer" }),
+                        new MediaTypeHeaderValue("application/json")
+                    ),
+                }
+            )
+        )
+        {
+            BaseAddress = new Uri("https://lepo.co"),
+        };
+
+        await client
+            .Authorize(token: "abc123")
+            .Post("/v1/api/basket")
+            .Should()
+            .Satisfy(
+                response =>
+                {
+                    response.Should().Succeed("because the server returned a successful status code");
+                },
+                "because the server returned a successful status code"
+            );
+    }
+
+    [Fact]
+    public async Task Satisfy_ShouldVerifyResponseAsynchronously_WhenServerReturnsOne()
+    {
+        using HttpClient client = new(
+            new FakeHttpMessageHandler(
+                new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = new StringContent(
+                        JsonSerializer.Serialize(new TestResponse { Id = 42, Name = "The Answer" }),
+                        new MediaTypeHeaderValue("application/json")
+                    ),
+                }
+            )
+        )
+        {
+            BaseAddress = new Uri("https://lepo.co"),
+        };
+
+        await client
+            .Authorize(token: "abc123")
+            .Post("/v1/api/basket")
+            .Should()
+            .Satisfy(
+                async response =>
+                {
+                    response.Should().Succeed("because the server returned a successful status code");
+
+                    await Task.CompletedTask;
+                },
+                "because the server returned a successful status code"
             );
     }
 
@@ -333,7 +398,7 @@ public sealed class HttpResponseMessageTaskAssertionsTests
             BaseAddress = new Uri("https://lepo.co"),
         };
 
-        await client.Get("/v1/api/missing").Should().Fail(HttpStatusCode.NotFound);
+        await client.Get("/v1/api/missing").Should().FailWith(HttpStatusCode.NotFound);
     }
 
     [Fact]
@@ -347,7 +412,7 @@ public sealed class HttpResponseMessageTaskAssertionsTests
         };
 
         Func<Task> action = async () =>
-            await client.Get("/v1/api/missing").Should().Fail(HttpStatusCode.NotFound);
+            await client.Get("/v1/api/missing").Should().FailWith(HttpStatusCode.NotFound);
 
         await action.Should().ThrowAsync<XunitException>();
     }
@@ -653,8 +718,8 @@ public sealed class HttpResponseMessageTaskAssertionsTests
 
     private sealed record TestResponse
     {
-        public int Id { get; set; }
+        public int Id { get; init; }
 
-        public string Name { get; set; } = string.Empty;
+        public string Name { get; init; } = string.Empty;
     }
 }

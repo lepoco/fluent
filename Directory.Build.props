@@ -1,14 +1,14 @@
 <Project>
   <PropertyGroup>
-    <Version>1.0.2</Version>
-    <AssemblyVersion>1.0.0</AssemblyVersion>
+    <Version>1.1.0</Version>
+    <AssemblyVersion>1.1.0</AssemblyVersion>
   </PropertyGroup>
 
   <PropertyGroup>
     <Company>lepo.co</Company>
     <Authors>lepo.co</Authors>
     <Product>Fluent Framework</Product>
-    <CommonTags>lepoco;fluent;framework</CommonTags>
+    <CommonTags>lepo;lepoco;fluent;framework;pomian;pomianowski</CommonTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
     <Copyright>(c) lepo.co | Leszek Pomianowski and Contributors. All rights reserved.</Copyright>

@@ -7,20 +7,43 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using AwesomeAssertions;
 using AwesomeAssertions.Execution;
 using AwesomeAssertions.Primitives;
 
 namespace Fluent.Client.AwesomeAssertions;
 
+/// <summary>
+/// Provides fluent assertion methods for a <see cref="Task{HttpResponseMessage}"/> returned by
+/// Fluent.Client HTTP methods such as <c>Get</c>, <c>Post</c>, <c>Put</c>, and <c>Delete</c>.
+/// </summary>
+/// <remarks>
+/// Obtain an instance by calling <c>.Should()</c> on any Fluent.Client method result. The task is
+/// awaited internally, so you do not need to await it before asserting.
+/// <para>
+/// For assertions on an already-materialised <see cref="HttpResponseMessage"/>, use
+/// <see cref="HttpResponseMessageAssertions"/> via the <c>HttpResponseMessageExtensions.Should()</c>
+/// extension instead.
+/// </para>
+/// </remarks>
 public class HttpResponseMessageTaskAssertions(Task<HttpResponseMessage> instance, AssertionChain chain)
     : ReferenceTypeAssertions<Task<HttpResponseMessage>, HttpResponseMessageTaskAssertions>(instance, chain)
 {
     private readonly AssertionChain chain = chain;
 
-    protected override string Identifier => "http-response";
+    protected override string Identifier => "http-response-task";
 
     // ReSharper disable once MemberCanBePrivate.Global
     // ReSharper disable once FieldCanBeMadeReadOnly.Global
+    /// <summary>
+    /// Shared <see cref="JsonSerializerOptions"/> used when deserializing response bodies in
+    /// <c>Satisfy&lt;TBody&gt;</c> and <c>SucceedWith&lt;TBody&gt;</c>.
+    /// </summary>
+    /// <remarks>
+    /// Default settings: property names are matched case-insensitively, trailing commas are
+    /// allowed, and enums are serialized as strings. Replace this field globally to customise
+    /// deserialization for your entire test suite, for example to register custom converters.
+    /// </remarks>
     public static JsonSerializerOptions DefaultJsonOptions = new()
     {
         PropertyNameCaseInsensitive = true,
@@ -33,6 +56,7 @@ public class HttpResponseMessageTaskAssertions(Task<HttpResponseMessage> instanc
     /// <summary>
     /// Asserts that the HTTP response indicates success (status code 2xx).
     /// </summary>
+    [CustomAssertion]
     public async Task Succeed(
         [StringSyntax("CompositeFormat")] string because = "",
         params object[] becauseArgs
@@ -49,9 +73,19 @@ public class HttpResponseMessageTaskAssertions(Task<HttpResponseMessage> instanc
     }
 
     /// <summary>
-    /// Asserts that the HTTP response has the expected status code.
+    /// Asserts that the HTTP response is both successful (status code 2xx) and has exactly
+    /// <paramref name="expectedStatusCode"/>.
     /// </summary>
-    public async Task Succeed(
+    /// <param name="expectedStatusCode">The exact status code the response must have.</param>
+    /// <param name="because">A reason to include in the failure message.</param>
+    /// <param name="becauseArgs">Format arguments for <paramref name="because"/>.</param>
+    /// <remarks>
+    /// Unlike <c>HaveStatusCode</c>, this method enforces that the response is in the success
+    /// range first, making the intent explicit when you want to confirm e.g. a <c>201 Created</c>
+    /// and not just any arbitrary code.
+    /// </remarks>
+    [CustomAssertion]
+    public async Task SucceedWith(
         System.Net.HttpStatusCode expectedStatusCode,
         [StringSyntax("CompositeFormat")] string because = "",
         params object[] becauseArgs
@@ -71,6 +105,7 @@ public class HttpResponseMessageTaskAssertions(Task<HttpResponseMessage> instanc
     /// <summary>
     /// Asserts that the HTTP response indicates a failure (non-success status code).
     /// </summary>
+    [CustomAssertion]
     public async Task Fail([StringSyntax("CompositeFormat")] string because = "", params object[] becauseArgs)
     {
         using HttpResponseMessage response = await Subject;
@@ -84,8 +119,17 @@ public class HttpResponseMessageTaskAssertions(Task<HttpResponseMessage> instanc
     }
 
     /// <summary>
-    /// Asserts that the HTTP response has the expected status code.
+    /// Asserts that the HTTP response has exactly <paramref name="expectedStatusCode"/>, without
+    /// any constraint on whether the status is a success or failure code.
     /// </summary>
+    /// <param name="expectedStatusCode">The exact status code the response must have.</param>
+    /// <param name="because">A reason to include in the failure message.</param>
+    /// <param name="becauseArgs">Format arguments for <paramref name="because"/>.</param>
+    /// <remarks>
+    /// Use this method when asserting error codes such as 400, 401, or 422 where
+    /// <c>SucceedWith</c> would fail the success check before comparing the code.
+    /// </remarks>
+    [CustomAssertion]
     public async Task HaveStatusCode(
         System.Net.HttpStatusCode expectedStatusCode,
         [StringSyntax("CompositeFormat")] string because = "",
@@ -106,6 +150,7 @@ public class HttpResponseMessageTaskAssertions(Task<HttpResponseMessage> instanc
     /// <summary>
     /// Asserts that the HTTP response contains the expected header.
     /// </summary>
+    [CustomAssertion]
     public async Task HaveHeader(
         string headerName,
         [StringSyntax("CompositeFormat")] string because = "",
@@ -127,6 +172,7 @@ public class HttpResponseMessageTaskAssertions(Task<HttpResponseMessage> instanc
     /// <summary>
     /// Asserts that the HTTP response contains the expected header with the expected value.
     /// </summary>
+    [CustomAssertion]
     public async Task HaveHeader(
         string headerName,
         string expectedValue,
@@ -157,7 +203,7 @@ public class HttpResponseMessageTaskAssertions(Task<HttpResponseMessage> instanc
             string.Equals(value, expectedValue, StringComparison.OrdinalIgnoreCase)
         );
 
-        CurrentAssertionChain
+        chain
             .BecauseOf(because, becauseArgs)
             .ForCondition(containsExpectedValue)
             .FailWith(
@@ -168,6 +214,7 @@ public class HttpResponseMessageTaskAssertions(Task<HttpResponseMessage> instanc
     /// <summary>
     /// Asserts that the HTTP response contains all expected headers.
     /// </summary>
+    [CustomAssertion]
     public async Task HaveHeaders(params string[] headerNames)
     {
         ThrowIfNull(headerNames, nameof(headerNames));
@@ -193,7 +240,8 @@ public class HttpResponseMessageTaskAssertions(Task<HttpResponseMessage> instanc
     /// <summary>
     /// Asserts that the HTTP response indicates a failure with the specific status code.
     /// </summary>
-    public async Task Fail(
+    [CustomAssertion]
+    public async Task FailWith(
         System.Net.HttpStatusCode expectedStatusCode,
         [StringSyntax("CompositeFormat")] string because = "",
         params object[] becauseArgs
@@ -213,6 +261,7 @@ public class HttpResponseMessageTaskAssertions(Task<HttpResponseMessage> instanc
     /// <summary>
     /// Asserts that the HTTP response has a 404 Not Found status code.
     /// </summary>
+    [CustomAssertion]
     public async Task BeNotFound(
         [StringSyntax("CompositeFormat")] string because = "",
         params object[] becauseArgs
@@ -221,6 +270,7 @@ public class HttpResponseMessageTaskAssertions(Task<HttpResponseMessage> instanc
     /// <summary>
     /// Asserts that the HTTP response has a 401 Unauthorized status code.
     /// </summary>
+    [CustomAssertion]
     public async Task BeUnauthorized(
         [StringSyntax("CompositeFormat")] string because = "",
         params object[] becauseArgs
@@ -229,6 +279,7 @@ public class HttpResponseMessageTaskAssertions(Task<HttpResponseMessage> instanc
     /// <summary>
     /// Asserts that the HTTP response has a 400 Bad Request status code.
     /// </summary>
+    [CustomAssertion]
     public async Task BeBadRequest(
         [StringSyntax("CompositeFormat")] string because = "",
         params object[] becauseArgs
@@ -237,6 +288,7 @@ public class HttpResponseMessageTaskAssertions(Task<HttpResponseMessage> instanc
     /// <summary>
     /// Asserts that the HTTP response has a 201 Created status code.
     /// </summary>
+    [CustomAssertion]
     public async Task BeCreated(
         [StringSyntax("CompositeFormat")] string because = "",
         params object[] becauseArgs
@@ -245,6 +297,7 @@ public class HttpResponseMessageTaskAssertions(Task<HttpResponseMessage> instanc
     /// <summary>
     /// Asserts that the HTTP response has a 204 No Content status code.
     /// </summary>
+    [CustomAssertion]
     public async Task BeNoContent(
         [StringSyntax("CompositeFormat")] string because = "",
         params object[] becauseArgs
@@ -253,6 +306,7 @@ public class HttpResponseMessageTaskAssertions(Task<HttpResponseMessage> instanc
     /// <summary>
     /// Asserts that the HTTP response has a 403 Forbidden status code.
     /// </summary>
+    [CustomAssertion]
     public async Task BeForbidden(
         [StringSyntax("CompositeFormat")] string because = "",
         params object[] becauseArgs
@@ -261,6 +315,7 @@ public class HttpResponseMessageTaskAssertions(Task<HttpResponseMessage> instanc
     /// <summary>
     /// Asserts that the HTTP response has a 409 Conflict status code.
     /// </summary>
+    [CustomAssertion]
     public async Task BeConflict(
         [StringSyntax("CompositeFormat")] string because = "",
         params object[] becauseArgs
@@ -269,6 +324,7 @@ public class HttpResponseMessageTaskAssertions(Task<HttpResponseMessage> instanc
     /// <summary>
     /// Asserts that the HTTP response has the expected Content-Type header.
     /// </summary>
+    [CustomAssertion]
     public async Task HaveContentType(
         string expectedMediaType,
         [StringSyntax("CompositeFormat")] string because = "",
@@ -294,6 +350,7 @@ public class HttpResponseMessageTaskAssertions(Task<HttpResponseMessage> instanc
     /// <summary>
     /// Asserts that the HTTP response indicates a redirect (3xx status code).
     /// </summary>
+    [CustomAssertion]
     public async Task BeRedirect(
         [StringSyntax("CompositeFormat")] string because = "",
         params object[] becauseArgs
@@ -312,8 +369,18 @@ public class HttpResponseMessageTaskAssertions(Task<HttpResponseMessage> instanc
     }
 
     /// <summary>
-    /// Asserts that the HTTP response is a redirect to the expected URL.
+    /// Asserts that the HTTP response is a redirect (3xx) whose <c>Location</c> header equals
+    /// <paramref name="expectedUrl"/>.
     /// </summary>
+    /// <param name="expectedUrl">The URL the <c>Location</c> header must match.</param>
+    /// <param name="because">A reason to include in the failure message.</param>
+    /// <param name="becauseArgs">Format arguments for <paramref name="because"/>.</param>
+    /// <remarks>
+    /// The <c>Location</c> header comparison is case-insensitive. Use this assertion to verify
+    /// login redirects, permanent moves (301), or any endpoint that returns a 3xx with an
+    /// explicit target URL.
+    /// </remarks>
+    [CustomAssertion]
     public async Task BeRedirectedTo(
         string expectedUrl,
         [StringSyntax("CompositeFormat")] string because = "",
@@ -340,7 +407,7 @@ public class HttpResponseMessageTaskAssertions(Task<HttpResponseMessage> instanc
 
         string? actualLocation = response.Headers.Location?.ToString();
 
-        CurrentAssertionChain
+        chain
             .BecauseOf(because, becauseArgs)
             .ForCondition(string.Equals(actualLocation, expectedUrl, StringComparison.OrdinalIgnoreCase))
             .FailWith(
@@ -351,6 +418,7 @@ public class HttpResponseMessageTaskAssertions(Task<HttpResponseMessage> instanc
     /// <summary>
     /// Asserts that the HTTP response has an empty body.
     /// </summary>
+    [CustomAssertion]
     public async Task HaveEmptyBody(
         [StringSyntax("CompositeFormat")] string because = "",
         params object[] becauseArgs
@@ -371,6 +439,7 @@ public class HttpResponseMessageTaskAssertions(Task<HttpResponseMessage> instanc
     /// <summary>
     /// Asserts that the HTTP response has a non-empty body.
     /// </summary>
+    [CustomAssertion]
     public async Task HaveNonEmptyBody(
         [StringSyntax("CompositeFormat")] string because = "",
         params object[] becauseArgs
@@ -387,8 +456,19 @@ public class HttpResponseMessageTaskAssertions(Task<HttpResponseMessage> instanc
     }
 
     /// <summary>
-    /// Asserts that the HTTP response indicates success and validates the deserialized body.
+    /// Asserts that the HTTP response is successful (2xx) and that the response body, deserialized
+    /// to <typeparamref name="TBody"/>, satisfies the provided <paramref name="assertion"/>.
     /// </summary>
+    /// <typeparam name="TBody">The type to deserialize the JSON response body into.</typeparam>
+    /// <param name="assertion">A callback that receives the deserialized body and performs further assertions.</param>
+    /// <param name="because">A reason to include in the failure message.</param>
+    /// <param name="becauseArgs">Format arguments for <paramref name="because"/>.</param>
+    /// <remarks>
+    /// Deserialization uses <see cref="DefaultJsonOptions"/>. The assertion fails immediately if
+    /// the status code is not 2xx — use <c>Satisfy&lt;TBody&gt;</c> instead when you need to
+    /// assert on error responses that carry a JSON body (e.g. <c>ProblemDetails</c> on 400).
+    /// </remarks>
+    [CustomAssertion]
     public async Task SucceedWith<TBody>(
         Action<TBody> assertion,
         [StringSyntax("CompositeFormat")] string because = "",
@@ -469,6 +549,27 @@ public class HttpResponseMessageTaskAssertions(Task<HttpResponseMessage> instanc
         }
     }
 
+    /// <summary>
+    /// Deserializes the response body to <typeparamref name="TBody"/> regardless of the status
+    /// code, then runs <paramref name="assertion"/> on the result.
+    /// </summary>
+    /// <typeparam name="TBody">The type to deserialize the JSON response body into.</typeparam>
+    /// <param name="assertion">A callback that receives the deserialized body and performs further assertions.</param>
+    /// <param name="because">A reason to include in the failure message.</param>
+    /// <param name="becauseArgs">Format arguments for <paramref name="because"/>.</param>
+    /// <remarks>
+    /// Unlike <c>SucceedWith&lt;TBody&gt;</c>, this overload does <b>not</b> require a 2xx status
+    /// code. Use it when testing endpoints that return a structured JSON body on error, such as
+    /// <c>ProblemDetails</c> on a 400 or 422 response.
+    /// </remarks>
+    /// <example>
+    /// <code>
+    /// await client.Post("/users", invalidData)
+    ///     .Should()
+    ///     .Satisfy&lt;ProblemDetails&gt;(problem => problem.Status.Should().Be(400));
+    /// </code>
+    /// </example>
+    [CustomAssertion]
     public async Task Satisfy<TBody>(
         Action<TBody> assertion,
         [StringSyntax("CompositeFormat")] string because = "",
@@ -547,6 +648,7 @@ public class HttpResponseMessageTaskAssertions(Task<HttpResponseMessage> instanc
     /// <summary>
     /// Asserts that the deserialized HTTP response body satisfies the provided asynchronous assertion.
     /// </summary>
+    [CustomAssertion]
     public async Task Satisfy<TBody>(
         Func<TBody, Task> assertion,
         [StringSyntax("CompositeFormat")] string because = "",
@@ -618,6 +720,110 @@ public class HttpResponseMessageTaskAssertions(Task<HttpResponseMessage> instanc
                         assertionChain => assertionChain.FailWith(failureMessage)
                     );
             }
+        }
+    }
+
+    /// <summary>
+    /// Passes the raw <see cref="HttpResponseMessage"/> to <paramref name="assertion"/> for fully
+    /// custom, synchronous inspection of the response.
+    /// </summary>
+    /// <param name="assertion">
+    /// A callback that receives the awaited <see cref="HttpResponseMessage"/>. Use it to assert on
+    /// any combination of status code, headers, and body that the built-in methods do not cover.
+    /// </param>
+    /// <param name="because">A reason to include in the failure message.</param>
+    /// <param name="becauseArgs">Format arguments for <paramref name="because"/>.</param>
+    /// <example>
+    /// <code>
+    /// await client.Get("/data").Should().Satisfy(response =>
+    /// {
+    ///     response.StatusCode.Should().Be(HttpStatusCode.OK);
+    ///     response.Headers.ETag.Should().NotBeNull();
+    /// });
+    /// </code>
+    /// </example>
+    [CustomAssertion]
+    public async Task Satisfy(
+        Action<HttpResponseMessage> assertion,
+        [StringSyntax("CompositeFormat")] string because = "",
+        params object[] becauseArgs
+    )
+    {
+        if (assertion is null)
+        {
+            throw new ArgumentNullException(nameof(assertion));
+        }
+
+        using HttpResponseMessage response = await Subject;
+
+        string[] failuresFromInspector;
+
+        using (AssertionScope assertionScope = new())
+        {
+            assertion(response);
+            failuresFromInspector = assertionScope.Discard();
+        }
+
+        if (failuresFromInspector.Length > 0)
+        {
+            string failureMessage =
+                Environment.NewLine + string.Join(Environment.NewLine, failuresFromInspector);
+
+            CurrentAssertionChain
+                .WithDefaultIdentifier(Identifier)
+                .WithExpectation(
+                    "Expected {context:object} to match inspector, but the inspector was not satisfied:",
+                    Subject,
+                    assertionChain => assertionChain.FailWith(failureMessage)
+                );
+        }
+    }
+
+    /// <summary>
+    /// Passes the raw <see cref="HttpResponseMessage"/> to an asynchronous
+    /// <paramref name="assertion"/> for fully custom inspection of the response.
+    /// </summary>
+    /// <param name="assertion">
+    /// An async callback that receives the awaited <see cref="HttpResponseMessage"/>. Use this
+    /// overload when your assertion itself needs to <c>await</c>, for example to read the body
+    /// stream or call async helper methods.
+    /// </param>
+    /// <param name="because">A reason to include in the failure message.</param>
+    /// <param name="becauseArgs">Format arguments for <paramref name="because"/>.</param>
+    [CustomAssertion]
+    public async Task Satisfy(
+        Func<HttpResponseMessage, Task> assertion,
+        [StringSyntax("CompositeFormat")] string because = "",
+        params object[] becauseArgs
+    )
+    {
+        if (assertion is null)
+        {
+            throw new ArgumentNullException(nameof(assertion));
+        }
+
+        using HttpResponseMessage response = await Subject;
+
+        string[] failuresFromInspector;
+
+        using (AssertionScope assertionScope = new())
+        {
+            await assertion(response);
+            failuresFromInspector = assertionScope.Discard();
+        }
+
+        if (failuresFromInspector.Length > 0)
+        {
+            string failureMessage =
+                Environment.NewLine + string.Join(Environment.NewLine, failuresFromInspector);
+
+            CurrentAssertionChain
+                .WithDefaultIdentifier(Identifier)
+                .WithExpectation(
+                    "Expected {context:object} to match inspector, but the inspector was not satisfied:",
+                    Subject,
+                    assertionChain => assertionChain.FailWith(failureMessage)
+                );
         }
     }
 

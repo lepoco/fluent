@@ -96,7 +96,10 @@ public sealed class FluentHttpRequest(HttpClient client, FluentHttpRequestConten
 
         if (Contents.Body is not null)
         {
-            string jsonContent = JsonSerializer.Serialize(Contents.Body, DefaultJsonOptions);
+            string jsonContent = JsonSerializer.Serialize(
+                Contents.Body,
+                Contents.JsonOptions ?? DefaultJsonOptions
+            );
 
 #if NETFRAMEWORK
             HttpContent httpContent = new StringContent(jsonContent, Encoding.UTF8, Contents.ContentType);

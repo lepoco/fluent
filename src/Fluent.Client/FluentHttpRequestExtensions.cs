@@ -153,6 +153,20 @@ public static class FluentHttpRequestExtensions
         }
 
         /// <summary>
+        /// Sets custom <see cref="JsonSerializerOptions"/> for this request,
+        /// overriding the default <see cref="FluentHttpRequest.DefaultJsonOptions"/>.
+        /// The provided options are used for both serializing the request body and
+        /// deserializing the response content.
+        /// </summary>
+        /// <param name="options">The JSON serializer options to use for this request.</param>
+        public FluentHttpRequest WithJsonOptions(JsonSerializerOptions options)
+        {
+            request.Contents.JsonOptions = options;
+
+            return request;
+        }
+
+        /// <summary>
         /// Sends the HTTP request asynchronously.
         /// </summary>
         /// <param name="cancellationToken">The cancellation token.</param>
@@ -171,7 +185,7 @@ public static class FluentHttpRequestExtensions
             string responseContent = await response.Content.ReadAsStringAsync();
             TResponse? result = JsonSerializer.Deserialize<TResponse>(
                 responseContent,
-                FluentHttpRequest.DefaultJsonOptions
+                request.Contents.JsonOptions ?? FluentHttpRequest.DefaultJsonOptions
             );
 
             if (result is null)

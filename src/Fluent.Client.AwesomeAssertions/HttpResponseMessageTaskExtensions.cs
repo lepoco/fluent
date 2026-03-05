@@ -12,8 +12,18 @@ public static class HttpResponseMessageTaskExtensions
     extension(Task<System.Net.Http.HttpResponseMessage> response)
     {
         /// <summary>
-        /// Returns assertions for <see cref="global::System.Net.Http.HttpResponseMessage"/>.
+        /// Returns the assertion entry point for a <see cref="Task{HttpResponseMessage}"/> returned
+        /// by any HttpClient HTTP method.
         /// </summary>
+        /// <remarks>
+        /// This is the primary way to assert HTTP responses in integration tests. Chain it directly
+        /// on the client call without awaiting first.
+        /// </remarks>
+        /// <example>
+        /// <code language="csharp">
+        /// await client.Post("/users", data).Should().BeCreated();
+        /// </code>
+        /// </example>
         public HttpResponseMessageTaskAssertions Should() => new(response, AssertionChain.GetOrCreate());
     }
 }

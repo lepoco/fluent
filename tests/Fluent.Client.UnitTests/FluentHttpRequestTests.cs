@@ -4,6 +4,7 @@
 // All Rights Reserved.
 
 using System.Net;
+using System.Text.Json;
 using Fluent.Client.UnitTests.Stubs;
 
 namespace Fluent.Client.UnitTests;
@@ -279,4 +280,94 @@ public class FluentHttpRequestTests
         request.Contents.Timeout.Should().Be(TimeSpan.FromSeconds(10));
         request.Contents.ContentType.Should().Be("text/plain");
     }
+
+    [Fact]
+    public void WithJsonOptions_ShouldSetCustomOptions_WhenCalled()
+    {
+        using HttpClient client = new(new FakeHttpMessageHandler(new HttpResponseMessage(HttpStatusCode.OK)))
+        {
+            BaseAddress = new Uri("https://lepo.co"),
+        };
+
+        var customOptions = new JsonSerializerOptions
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
+            WriteIndented = false,
+        };
+
+        FluentHttpRequest request = new(client);
+        request.WithJsonOptions(customOptions);
+
+        request.Contents.JsonOptions.Should().BeSameAs(customOptions);
+    }
+
+    [Fact]
+    public async Task WithJsonOptions_ShouldUseCustomOptionsForSerialization_WhenBodyIsSet()
+    {
+        string? capturedBody = null;
+        using HttpClient client = new(
+            new FakeHttpMessageHandler(async req =>
+            {
+                capturedBody = await req.Content!.ReadAsStringAsync();
+                return new HttpResponseMessage(HttpStatusCode.OK);
+            })
+        )
+        {
+            BaseAddress = new Uri("https://lepo.co"),
+        };
+
+        var customOptions = new JsonSerializerOptions
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
+            WriteIndented = false,
+        };
+
+        FluentHttpRequest request = new(client);
+        request.WithJsonOptions(customOptions);
+        request.Contents.Path = "/";
+        request.Contents.HttpMethod = HttpMethod.Post;
+        request.Contents.Body = new { HelloWorld = "test" };
+
+        await request.SendAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        capturedBody
+            .Should()
+            .Contain("hello_world", "because SnakeCaseLower naming policy should be applied");
+    }
+
+    [Fact]
+    public async Task WithJsonOptions_ShouldUseCustomOptionsForDeserialization_WhenResponseIsReceived()
+    {
+        const string responseJson = """{"hello_world":"test"}""";
+        using HttpClient client = new(
+            new FakeHttpMessageHandler(
+                new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = new StringContent(responseJson, System.Text.Encoding.UTF8, "application/json"),
+                }
+            )
+        )
+        {
+            BaseAddress = new Uri("https://lepo.co"),
+        };
+
+        var customOptions = new JsonSerializerOptions
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
+        };
+
+        FluentHttpRequest request = new(client);
+        request.WithJsonOptions(customOptions);
+        request.Contents.Path = "/";
+        request.Contents.HttpMethod = HttpMethod.Get;
+
+        WithJsonOptionsDeserializationResponse result =
+            await request.Send<WithJsonOptionsDeserializationResponse>(
+                cancellationToken: TestContext.Current.CancellationToken
+            );
+
+        result.HelloWorld.Should().Be("test");
+    }
+
+    private sealed record WithJsonOptionsDeserializationResponse(string HelloWorld);
 }

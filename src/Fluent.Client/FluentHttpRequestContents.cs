@@ -4,6 +4,7 @@
 // All Rights Reserved.
 
 using System.Net.Http;
+using System.Text.Json;
 
 namespace Fluent.Client;
 
@@ -81,4 +82,11 @@ public class FluentHttpRequestContents
     /// Gets or sets the timeout for the HTTP request. If null, the default client timeout is used.
     /// </summary>
     public TimeSpan? Timeout { get; set; }
+
+    /// <summary>
+    /// Gets or sets the JSON serializer options to use for this request,
+    /// overriding <see cref="FluentHttpRequest.DefaultJsonOptions"/>.
+    /// When <see langword="null"/>, <see cref="FluentHttpRequest.DefaultJsonOptions"/> is used.
+    /// </summary>
+    public JsonSerializerOptions? JsonOptions { get; set; }
 }

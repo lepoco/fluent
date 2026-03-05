@@ -1,8 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFrameworks>net10.0;net8.0;net472;net481</TargetFrameworks>
+    <Product>Fluent.Client.AwesomeAssertions</Product>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <PackageTags>assertions;fluentassertions;awesome;awesomeassertions;testing;xunit;nunit;playwright;http;client</PackageTags>
+    <PackageTags>request;api;open;openapi;swagger;assertions;fluentassertions;awesome;awesomeassertions;testing;xunit;nunit;playwright;http;client</PackageTags>
   </PropertyGroup>
 
   <ItemGroup Condition="'$(GeneratePackageOnBuild)' == 'true'">
