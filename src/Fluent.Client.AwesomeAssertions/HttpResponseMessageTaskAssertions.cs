@@ -26,10 +26,16 @@ namespace Fluent.Client.AwesomeAssertions;
 /// extension instead.
 /// </para>
 /// </remarks>
-public class HttpResponseMessageTaskAssertions(Task<HttpResponseMessage> instance, AssertionChain chain)
-    : ReferenceTypeAssertions<Task<HttpResponseMessage>, HttpResponseMessageTaskAssertions>(instance, chain)
+public class HttpResponseMessageTaskAssertions(
+    Task<HttpResponseMessage> instance,
+    AssertionChain assertionChain
+)
+    : ReferenceTypeAssertions<Task<HttpResponseMessage>, HttpResponseMessageTaskAssertions>(
+        instance,
+        assertionChain
+    )
 {
-    private readonly AssertionChain chain = chain;
+    private readonly AssertionChain chain = assertionChain;
 
     protected override string Identifier => "http-response-task";
 
@@ -173,7 +179,7 @@ public class HttpResponseMessageTaskAssertions(Task<HttpResponseMessage> instanc
     /// Asserts that the HTTP response contains the expected header with the expected value.
     /// </summary>
     [CustomAssertion]
-    public async Task HaveHeader(
+    public async Task HaveHeaderWithValue(
         string headerName,
         string expectedValue,
         [StringSyntax("CompositeFormat")] string because = "",

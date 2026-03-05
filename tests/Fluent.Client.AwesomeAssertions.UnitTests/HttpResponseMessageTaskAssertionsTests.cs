@@ -246,7 +246,7 @@ public sealed class HttpResponseMessageTaskAssertionsTests
     }
 
     [Fact]
-    public async Task HaveHeader_WithValue_ShouldPass_WhenHeaderHasExpectedValue()
+    public async Task HaveHeaderWithValue_WithValue_ShouldPass_WhenHeaderHasExpectedValue()
     {
         using HttpClient client = new(
             new FakeHttpMessageHandler(
@@ -257,11 +257,14 @@ public sealed class HttpResponseMessageTaskAssertionsTests
             BaseAddress = new Uri("https://lepo.co"),
         };
 
-        await client.Get("/v1/api/basket").Should().HaveHeader("X-Custom", expectedValue: "test-value");
+        await client
+            .Get("/v1/api/basket")
+            .Should()
+            .HaveHeaderWithValue("X-Custom", expectedValue: "test-value");
     }
 
     [Fact]
-    public async Task HaveHeader_WithValue_ShouldFail_WhenHeaderHasWrongValue()
+    public async Task HaveHeaderWithValue_WithValue_ShouldFail_WhenHeaderHasWrongValue()
     {
         using HttpClient client = new(
             new FakeHttpMessageHandler(
@@ -273,7 +276,10 @@ public sealed class HttpResponseMessageTaskAssertionsTests
         };
 
         Func<Task> action = async () =>
-            await client.Get("/v1/api/basket").Should().HaveHeader("X-Custom", expectedValue: "test-value");
+            await client
+                .Get("/v1/api/basket")
+                .Should()
+                .HaveHeaderWithValue("X-Custom", expectedValue: "test-value");
 
         await action.Should().ThrowAsync<XunitException>();
     }
