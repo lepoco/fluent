@@ -1,41 +1,18 @@
-<div align="center">
-    <h1>🚀 Fluent Framework</h1>
-    <h3><em>A modern collection of libraries for .NET applications.</em></h3>
-</div>
+# Fluent Framework
 
-<p align="center">
-    <strong>Build better .NET applications with fluent, expressive APIs across HTTP, UI, and more.</strong>
-</p>
+[Created with ❤ in Poland by Leszek Pomianowski](https://lepo.co/) and [open-source community](https://github.com/lepoco/fluent/graphs/contributors).  
+A collection of small, independent .NET libraries that wrap common infrastructure with a chainable API.
 
-<p align="center">
-    <a href="https://github.com/lepoco/fluent/stargazers"><img src="https://img.shields.io/github/stars/lepoco/fluent?style=social" alt="GitHub stars"/></a>
-    <a href="https://github.com/lepoco/fluent/blob/main/LICENSE"><img src="https://img.shields.io/github/license/lepoco/fluent" alt="License"/></a>
-    <a href="https://github.com/lepoco/fluent/graphs/contributors"><img src="https://img.shields.io/github/contributors/lepoco/fluent" alt="Contributors"/></a>
-</p>
+[![GitHub license](https://img.shields.io/github/license/lepoco/fluent)](https://github.com/lepoco/fluent/blob/main/LICENSE) [![Contributors](https://img.shields.io/github/contributors/lepoco/fluent)](https://github.com/lepoco/fluent/graphs/contributors)
 
-<p align="center">
-    <a href="https://lepo.co/">Created with ❤️ in Poland by Leszek Pomianowski</a> and <a href="https://github.com/lepoco/fluent/graphs/contributors">open-source community</a>.
-</p>
-
----
-
-## 📦 Packages
-
-Fluent Framework is a collection of independent packages. Use what you need.
+## Packages
 
 | Package | Description | NuGet |
 |---------|-------------|-------|
-| [**Fluent.Client**](src/Fluent.Client) | Fluent HTTP client wrapper for clean, chainable requests | [![NuGet](https://img.shields.io/nuget/v/Fluent.Client.svg)](https://www.nuget.org/packages/Fluent.Client) |
-| [**Fluent.Client.AwesomeAssertions**](src/Fluent.Client.AwesomeAssertions) | Expressive HTTP response assertions for integration tests | [![NuGet](https://img.shields.io/nuget/v/Fluent.Client.AwesomeAssertions.svg)](https://www.nuget.org/packages/Fluent.Client.AwesomeAssertions) |
+| [Fluent.Client](src/Fluent.Client) | Chainable HTTP client wrapper for .NET | [![NuGet](https://img.shields.io/nuget/v/Fluent.Client.svg)](https://www.nuget.org/packages/Fluent.Client) |
+| [Fluent.Client.AwesomeAssertions](src/Fluent.Client.AwesomeAssertions) | HTTP response assertions for integration tests | [![NuGet](https://img.shields.io/nuget/v/Fluent.Client.AwesomeAssertions.svg)](https://www.nuget.org/packages/Fluent.Client.AwesomeAssertions) |
 
-> [!NOTE]
-> More packages coming soon. Stay tuned!
-
----
-
-## ⚡ Quick Start
-
-### HTTP Client
+## Getting started
 
 ```powershell
 dotnet add package Fluent.Client
@@ -46,13 +23,12 @@ using Fluent.Client;
 
 var client = new HttpClient { BaseAddress = new Uri("https://api.example.com/") };
 
-// Clean, fluent HTTP requests
-var response = await client
+using var response = await client
     .Authorize(token: "jwt-token")
     .Post("/api/users", new { Name = "John" });
 ```
 
-### Testing Assertions
+Pair it with `Fluent.Client.AwesomeAssertions` for integration tests:
 
 ```powershell
 dotnet add package Fluent.Client.AwesomeAssertions
@@ -61,81 +37,30 @@ dotnet add package Fluent.Client.AwesomeAssertions
 ```csharp
 using Fluent.Client.AwesomeAssertions;
 
-// Expressive test assertions
 await client
     .Post("/api/users", new { Name = "John" })
     .Should()
     .Succeed("because valid data was provided");
 ```
 
----
+## Building from source
 
-## 🎯 Philosophy
-
-Fluent Framework follows these principles:
-
-| Principle | Description |
-|-----------|-------------|
-| **🧩 Modular** | Use only what you need. Each package is independent. |
-| **📖 Readable** | APIs designed to read like natural language. |
-| **🔧 Extensible** | Easy to extend and customize for your needs. |
-| **✅ Testable** | Built with testing in mind from the ground up. |
-| **🚀 Modern** | Targets latest .NET with modern C# features. |
-
----
-
-## 🛠️ Building from Source
-
-### Prerequisites
-
-- [.NET 10 SDK](https://dotnet.microsoft.com/download) or later
-- Visual Studio 2022, VS Code, or JetBrains Rider
-
-### Build
+Requires [.NET 10 SDK](https://dotnet.microsoft.com/download) or later.
 
 ```powershell
 git clone https://github.com/lepoco/fluent.git
 cd fluent
 dotnet build
-```
-
-### Run Tests
-
-```powershell
 dotnet test
 ```
 
----
+## Contributing
 
-## 🤝 Contributing
+Pull requests are welcome. See [Contributing.md](Contributing.md) for details on branching, commit conventions, and code style.
 
-We welcome contributions! Please see our [Contributing Guide](Contributing.md) for details.
+For bug reports and feature requests, open a [GitHub issue](https://github.com/lepoco/fluent/issues/new). Longer discussions belong in [GitHub Discussions](https://github.com/lepoco/fluent/discussions).
 
-### Ways to Contribute
+## License
 
-- 🐛 Report bugs and issues
-- 💡 Suggest new features or packages
-- 📝 Improve documentation
-- 🔧 Submit pull requests
-
----
-
-## 👥 Maintainers
-
-- Leszek Pomianowski ([@pomianowski](https://github.com/pomianowski))
-
----
-
-## 💬 Support
-
-- 📖 [Documentation](docs/)
-- 🐛 [Issue Tracker](https://github.com/lepoco/fluent/issues)
-- 💬 [Discussions](https://github.com/lepoco/fluent/discussions)
-
----
-
-## 📄 License
-
-This project is licensed under the **MIT** license. See the [LICENSE](LICENSE) file for details.
-
-You can use it in private and commercial projects. Keep in mind that you must include a copy of the license in your project.
+Fluent Framework is free and open source software licensed under the **MIT License**. You can use it in private and commercial projects.  
+Keep in mind that you must include a copy of the license in your project.

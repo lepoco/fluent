@@ -5,6 +5,7 @@
 
 using System.Net.Http;
 using System.Text.Json;
+using Fluent.Client.Authentication;
 
 namespace Fluent.Client;
 
@@ -18,32 +19,29 @@ public static class FluentHttpRequestExtensions
         /// <param name="username">The username.</param>
         /// <param name="password">The password.</param>
         /// <param name="token">The access token.</param>
+        /// <param name="key">The API key.</param>
+        /// <param name="header">The header name used for authorization</param>
         /// <param name="kind">The token kind. Defaults to "Bearer".</param>
         public FluentHttpRequest Authorize(
             string? username = null,
             string? password = null,
             string? token = null,
+            string? key = null,
+            string? header = null,
             AuthorizationType? kind = null
         )
         {
-            if (!string.IsNullOrEmpty(username) && !string.IsNullOrEmpty(password))
-            {
-                byte[] byteArray = System.Text.Encoding.ASCII.GetBytes($"{username}:{password}");
-
-                token = Convert.ToBase64String(byteArray);
-                kind ??= AuthorizationType.Basic;
-            }
-            else if (!string.IsNullOrEmpty(token))
-            {
-                kind ??= AuthorizationType.Bearer;
-            }
-            else
-            {
-                throw new ArgumentException("Either token or username and password must be provided.");
-            }
+            (string headerName, string headerValue) = AuthorizationHeaderBuilder.Build(
+                username,
+                password,
+                token,
+                key,
+                header,
+                kind
+            );
 
             request.Contents.Headers ??= [];
-            request.Contents.Headers["Authorization"] = $"{kind} {token}";
+            request.Contents.Headers[headerName] = headerValue;
 
             return request;
         }
@@ -75,6 +73,8 @@ public static class FluentHttpRequestExtensions
 
         /// <summary>
         /// Adds a single query parameter to the HTTP request.
+        /// <param name="key">The query parameter name.</param>
+        /// <param name="value">The query parameter value.</param>
         /// </summary>
         public FluentHttpRequest WithParameter(string key, object? value)
         {
@@ -93,6 +93,27 @@ public static class FluentHttpRequestExtensions
         {
             request.Contents.Headers ??= [];
             request.Contents.Headers[key] = value;
+
+            return request;
+        }
+
+        /// <summary>
+        /// Adds a custom header to the HTTP request.
+        /// </summary>
+        /// <param name="headers">The headers to add.</param>
+        public FluentHttpRequest WithHeaders(IDictionary<string, string> headers)
+        {
+            if (request.Contents.Headers is null)
+            {
+                request.Contents.Headers = headers.ToDictionary(x => x.Key, x => x.Value);
+
+                return request;
+            }
+
+            foreach (KeyValuePair<string, string> header in headers)
+            {
+                request.Contents.Headers[header.Key] = header.Value;
+            }
 
             return request;
         }
@@ -182,7 +203,11 @@ public static class FluentHttpRequestExtensions
         {
             using HttpResponseMessage response = await request.SendAsync(cancellationToken);
 
+#if NET8_0_OR_GREATER
+            string responseContent = await response.Content.ReadAsStringAsync(cancellationToken);
+#else
             string responseContent = await response.Content.ReadAsStringAsync();
+#endif
             TResponse? result = JsonSerializer.Deserialize<TResponse>(
                 responseContent,
                 request.Contents.JsonOptions ?? FluentHttpRequest.DefaultJsonOptions

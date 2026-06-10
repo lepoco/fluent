@@ -4,6 +4,7 @@
 // All Rights Reserved.
 
 using System.Net.Http;
+using Fluent.Client.Authentication;
 using HttpResponseMessage = System.Net.Http.HttpResponseMessage;
 
 namespace Fluent.Client;
@@ -25,13 +26,17 @@ public static class HttpClientExtensions
         /// <param name="username">The username.</param>
         /// <param name="password">The password.</param>
         /// <param name="token">The access token.</param>
+        /// <param name="key">The API key.</param>
+        /// <param name="header">The header name used for authorization</param>
         /// <param name="kind">The token kind. Defaults to "Bearer".</param>
         public FluentHttpRequest Authorize(
             string? username = null,
             string? password = null,
             string? token = null,
+            string? key = null,
+            string? header = null,
             AuthorizationType? kind = null
-        ) => new FluentHttpRequest(client).Authorize(username, password, token, kind);
+        ) => new FluentHttpRequest(client).Authorize(username, password, token, key, header, kind);
 
         /// <summary>
         /// Sets the query parameters of the HTTP request from the properties of the provided object.
@@ -40,9 +45,26 @@ public static class HttpClientExtensions
 
         /// <summary>
         /// Adds a single query parameter to the HTTP request.
+        /// <param name="key">The query parameter name.</param>
+        /// <param name="value">The query parameter value.</param>
         /// </summary>
         public FluentHttpRequest WithParameter(string key, object? value) =>
             new FluentHttpRequest(client).WithParameter(key, value);
+
+        /// <summary>
+        /// Adds a single header to the HTTP request.
+        /// <param name="key">The header name.</param>
+        /// <param name="value">The header value.</param>
+        /// </summary>
+        public FluentHttpRequest WithHeader(string key, string value) =>
+            new FluentHttpRequest(client).WithHeader(key, value);
+
+        /// <summary>
+        /// Adds multiple headers to the HTTP request.
+        /// <param name="headers">The headers to add.</param>
+        /// </summary>
+        public FluentHttpRequest WithHeaders(IDictionary<string, string> headers) =>
+            new FluentHttpRequest(client).WithHeaders(headers);
 
         /// <summary>
         /// Sends an HTTP POST request asynchronously.
